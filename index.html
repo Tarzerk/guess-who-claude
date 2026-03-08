@@ -14,16 +14,16 @@
     <h1 class="lobby-title">Guess Who?</h1>
     <div class="main-menu">
       <button class="mode-btn" onclick="showScreen('soloSetup')">
-        <span class="mode-btn-title">Solo / Discord</span>
+        <span class="mode-btn-title">Solo Board</span>
         <span class="mode-btn-desc">Get your own board and coordinate over voice chat</span>
       </button>
       <button class="mode-btn" onclick="showScreen('localSetup')">
-        <span class="mode-btn-title">Same Device</span>
+        <span class="mode-btn-title">Pass &amp; Play</span>
         <span class="mode-btn-desc">Pass &amp; play with a friend on one device</span>
       </button>
       <button class="mode-btn" onclick="showScreen('onlineSetup')">
         <span class="mode-btn-title">Online</span>
-        <span class="mode-btn-desc">Play with a friend over the internet</span>
+        <span class="mode-btn-desc">Create or join a room to play remotely</span>
       </button>
     </div>
   </div>
@@ -31,7 +31,7 @@
   <!-- Solo Setup -->
   <div class="lobby-screen" id="soloSetup" style="display:none">
     <button class="back-btn" onclick="showScreen('mainMenu')">&larr; Back</button>
-    <h1 class="lobby-title">Solo / Discord</h1>
+    <h1 class="lobby-title">Solo Board</h1>
     <div class="lobby-box">
       <label>Character Pack</label>
       <select id="soloPackSelect"></select>
@@ -43,7 +43,7 @@
   <!-- Local Multiplayer Setup -->
   <div class="lobby-screen" id="localSetup" style="display:none">
     <button class="back-btn" onclick="showScreen('mainMenu')">&larr; Back</button>
-    <h1 class="lobby-title">Same Device</h1>
+    <h1 class="lobby-title">Pass &amp; Play</h1>
     <div class="lobby-box">
       <label>Character Pack</label>
       <select id="localPackSelect"></select>
