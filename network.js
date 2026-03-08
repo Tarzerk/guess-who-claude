@@ -170,6 +170,15 @@ function setupConnection() {
 
 function endTurn() {
   if (gameOver || !myTurn) return;
+
+  if (localMultiplayer) {
+    myTurn = false;
+    const nextPlayer = currentPlayer === 1 ? 2 : 1;
+    document.getElementById("myCardBadge").style.visibility = "hidden";
+    showPassScreen("turn", nextPlayer);
+    return;
+  }
+
   myTurn = false;
   conn.send({ type: "endTurn" });
   updateTurnUI();

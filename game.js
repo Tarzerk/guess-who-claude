@@ -8,6 +8,22 @@ let myTurn = false;
 let gameCharacters = [];
 const imageCache = {};
 
+// ─── Local multiplayer state ───
+let localMultiplayer = false;
+let currentPlayer = 1;
+let player1Card = "";
+let player2Card = "";
+let player1Eliminated = new Set();
+let player2Eliminated = new Set();
+let passPhase = "";
+let passPlayerNum = 1;
+
+// ─── Screen navigation ───
+function showScreen(screenId) {
+  document.querySelectorAll(".lobby-screen").forEach(el => el.style.display = "none");
+  document.getElementById(screenId).style.display = "";
+}
+
 // ─── Image fetching with error logging ───
 async function fetchImages() {
   const names = gameCharacters.length ? gameCharacters : [];
@@ -102,11 +118,10 @@ function handleImageError(img, characterName) {
 function startOffline() {
   offlineMode = true;
   myTurn = true;
-  const packSelect = document.getElementById("packSelect");
-  const packName = packSelect.value;
+  const packName = document.getElementById("soloPackSelect").value;
   gameCharacters = [...CHARACTER_PACKS[packName]];
   myCard = gameCharacters[Math.floor(Math.random() * gameCharacters.length)];
-  document.getElementById("lobby").style.display = "none";
+  hideAllLobbyScreens();
   document.getElementById("gameContainer").classList.add("visible");
   document.getElementById("roomBadge").innerHTML = `<strong>Offline</strong> &mdash; ${packName}`;
   document.getElementById("endTurnBtn").style.display = "none";
@@ -115,9 +130,117 @@ function startOffline() {
   fetchImages();
 }
 
+// ─── Local Multiplayer Mode ───
+function startLocalMultiplayer() {
+  localMultiplayer = true;
+  myTurn = true;
+  const packName = document.getElementById("localPackSelect").value;
+  gameCharacters = [...CHARACTER_PACKS[packName]];
+
+  // Pick 2 different mystery cards
+  const shuffled = [...gameCharacters].sort(() => Math.random() - 0.5);
+  player1Card = shuffled[0];
+  player2Card = shuffled[1];
+
+  // Start as Player 1
+  currentPlayer = 1;
+  myCard = player1Card;
+  eliminated = player1Eliminated;
+
+  hideAllLobbyScreens();
+  document.getElementById("gameContainer").classList.add("visible");
+  document.getElementById("roomBadge").innerHTML = `<strong>Local</strong> &mdash; ${packName}`;
+  document.getElementById("myCardBadge").style.visibility = "hidden";
+
+  renderBoard();
+  fetchImages();
+
+  // Start card reveal flow
+  showPassScreen("reveal", 1);
+}
+
+function swapToPlayer(playerNum) {
+  currentPlayer = playerNum;
+  if (playerNum === 1) {
+    myCard = player1Card;
+    eliminated = player1Eliminated;
+  } else {
+    myCard = player2Card;
+    eliminated = player2Eliminated;
+  }
+}
+
+function showPassScreen(phase, playerNum) {
+  passPhase = phase;
+  passPlayerNum = playerNum;
+
+  const title = document.getElementById("passTitle");
+  const text = document.getElementById("passText");
+  const btn = document.getElementById("passBtn");
+
+  document.getElementById("myCardBadge").style.visibility = "hidden";
+
+  if (phase === "reveal") {
+    title.textContent = `Player ${playerNum}`;
+    text.innerHTML = "Make sure only <strong>you</strong> can see the screen, then press Continue to see your secret character.";
+    btn.textContent = "Show My Character";
+  } else if (phase === "showCard") {
+    swapToPlayer(playerNum);
+    title.textContent = `Player ${playerNum}'s Secret Character`;
+    text.innerHTML = `<div class="card-reveal">${myCard}</div>Remember this! Your opponent will try to guess this character.`;
+    btn.textContent = "Got It";
+  } else if (phase === "turn") {
+    title.textContent = `Player ${playerNum}'s Turn`;
+    text.innerHTML = "Make sure only <strong>you</strong> can see the screen, then press Continue to play your turn.";
+    btn.textContent = "Continue";
+  }
+
+  document.getElementById("passOverlay").classList.add("visible");
+}
+
+function handlePassAction() {
+  if (passPhase === "reveal") {
+    // Show the card
+    showPassScreen("showCard", passPlayerNum);
+  } else if (passPhase === "showCard") {
+    if (passPlayerNum === 1) {
+      // Now reveal Player 2's card
+      showPassScreen("reveal", 2);
+    } else {
+      // Both players have seen their cards — start gameplay
+      document.getElementById("passOverlay").classList.remove("visible");
+      beginLocalGameplay();
+    }
+  } else if (passPhase === "turn") {
+    // Resume the turn
+    document.getElementById("passOverlay").classList.remove("visible");
+    resumeTurn(passPlayerNum);
+  }
+}
+
+function beginLocalGameplay() {
+  swapToPlayer(1);
+  myTurn = true;
+  renderBoard();
+  document.getElementById("myCardBadge").style.visibility = "";
+  updateTurnUI();
+}
+
+function resumeTurn(playerNum) {
+  swapToPlayer(playerNum);
+  myTurn = true;
+  renderBoard();
+  document.getElementById("myCardBadge").style.visibility = "";
+  updateTurnUI();
+}
+
+function hideAllLobbyScreens() {
+  document.querySelectorAll(".lobby-screen").forEach(el => el.style.display = "none");
+}
+
 // ─── Game UI ───
 function startGame(packName) {
-  document.getElementById("lobby").style.display = "none";
+  hideAllLobbyScreens();
   document.getElementById("gameContainer").classList.add("visible");
   let badge = `Room: <strong>${roomId}</strong>`;
   if (packName) badge += ` &mdash; ${packName}`;
@@ -133,6 +256,13 @@ function updateTurnUI() {
     info.textContent = "Eliminate characters, then Make Guess when ready!";
     info.className = "turn-info your-turn";
     document.getElementById("guessBtn").disabled = false;
+    return;
+  }
+  if (localMultiplayer) {
+    info.textContent = `Player ${currentPlayer}'s Turn — eliminate characters or make a guess!`;
+    info.className = "turn-info your-turn";
+    document.getElementById("guessBtn").disabled = false;
+    document.getElementById("endTurnBtn").disabled = false;
     return;
   }
   if (myTurn) {
@@ -200,7 +330,7 @@ function handleCardClick(card) {
 }
 
 function toggleGuessMode() {
-  if (gameOver || (!myTurn && !offlineMode)) return;
+  if (gameOver || (!myTurn && !offlineMode && !localMultiplayer)) return;
   guessMode = !guessMode;
   document.getElementById("guessBtn").classList.toggle("active", guessMode);
   document.getElementById("guessHint").classList.toggle("visible", guessMode);
@@ -221,6 +351,26 @@ function makeGuess(name) {
     modal.className = "modal win";
     title.textContent = "Your Guess";
     text.innerHTML = `You guessed <span class="highlight">${name}</span>!<br><br><span style="color:#aaa;font-size:0.9rem;">Ask your opponent if you're right!</span>`;
+    document.getElementById("overlay").classList.add("visible");
+    return;
+  }
+
+  if (localMultiplayer) {
+    const opponentCard = currentPlayer === 1 ? player2Card : player1Card;
+    const correct = name === opponentCard;
+    const modal = document.getElementById("modal");
+    const title = document.getElementById("modalTitle");
+    const text = document.getElementById("modalText");
+
+    if (correct) {
+      modal.className = "modal win";
+      title.textContent = `Player ${currentPlayer} Wins!`;
+      text.innerHTML = `Correctly guessed <span class="highlight">${name}</span>!`;
+    } else {
+      modal.className = "modal lose";
+      title.textContent = `Player ${currentPlayer} Loses!`;
+      text.innerHTML = `Guessed <strong>${name}</strong>, but the answer was <span class="highlight">${opponentCard}</span>.`;
+    }
     document.getElementById("overlay").classList.add("visible");
     return;
   }

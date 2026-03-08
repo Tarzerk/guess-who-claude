@@ -9,23 +9,54 @@
 </head>
 <body>
 
-  <!-- Lobby -->
-  <div class="lobby" id="lobby">
-    <h1>Guess Who?</h1>
-    <p>Play with a friend online or start a solo board to coordinate over Discord!</p>
-
-    <div class="lobby-box">
-      <label>Solo / Discord Mode</label>
-      <select id="packSelect"></select>
-      <div class="pack-label">Pick the same pack as your friend so you both have the same board!</div>
-      <button class="btn-join" onclick="startOffline()" style="width:100%;padding:14px;font-size:1.05rem;">Play Offline</button>
-      <div style="color:#666;font-size:0.8rem;text-align:center;">Get your own board and card. Tell your friend when you're done over Discord!</div>
+  <!-- Main Menu -->
+  <div class="lobby-screen" id="mainMenu">
+    <h1 class="lobby-title">Guess Who?</h1>
+    <div class="main-menu">
+      <button class="mode-btn" onclick="showScreen('soloSetup')">
+        <span class="mode-btn-title">Solo / Discord</span>
+        <span class="mode-btn-desc">Get your own board and coordinate over voice chat</span>
+      </button>
+      <button class="mode-btn" onclick="showScreen('localSetup')">
+        <span class="mode-btn-title">Same Device</span>
+        <span class="mode-btn-desc">Pass &amp; play with a friend on one device</span>
+      </button>
+      <button class="mode-btn" onclick="showScreen('onlineSetup')">
+        <span class="mode-btn-title">Online</span>
+        <span class="mode-btn-desc">Play with a friend over the internet</span>
+      </button>
     </div>
+  </div>
 
-    <div style="color:#444;font-size:0.9rem;margin:4px 0;">— or play connected —</div>
-
+  <!-- Solo Setup -->
+  <div class="lobby-screen" id="soloSetup" style="display:none">
+    <button class="back-btn" onclick="showScreen('mainMenu')">&larr; Back</button>
+    <h1 class="lobby-title">Solo / Discord</h1>
     <div class="lobby-box">
-      <label>Online Room Code</label>
+      <label>Character Pack</label>
+      <select id="soloPackSelect"></select>
+      <div class="pack-label">Pick the same pack as your friend so you both have the same board!</div>
+      <button class="btn-join" onclick="startOffline()" style="width:100%;padding:14px;font-size:1.05rem;">Play</button>
+    </div>
+  </div>
+
+  <!-- Local Multiplayer Setup -->
+  <div class="lobby-screen" id="localSetup" style="display:none">
+    <button class="back-btn" onclick="showScreen('mainMenu')">&larr; Back</button>
+    <h1 class="lobby-title">Same Device</h1>
+    <div class="lobby-box">
+      <label>Character Pack</label>
+      <select id="localPackSelect"></select>
+      <button class="btn-join" onclick="startLocalMultiplayer()" style="width:100%;padding:14px;font-size:1.05rem;">Start Game</button>
+    </div>
+  </div>
+
+  <!-- Online Setup -->
+  <div class="lobby-screen" id="onlineSetup" style="display:none">
+    <button class="back-btn" onclick="showScreen('mainMenu')">&larr; Back</button>
+    <h1 class="lobby-title">Online</h1>
+    <div class="lobby-box">
+      <label>Room Code</label>
       <input type="text" id="roomCode" maxlength="8" placeholder="e.g. ABCD" autocomplete="off">
       <div class="lobby-buttons">
         <button class="btn-create" onclick="createRoom()">Create Room</button>
@@ -68,18 +99,31 @@
     </div>
   </div>
 
+  <!-- Pass overlay (local multiplayer) -->
+  <div class="overlay" id="passOverlay">
+    <div class="modal pass-modal">
+      <h2 id="passTitle"></h2>
+      <p id="passText"></p>
+      <button class="btn-new" id="passBtn" onclick="handlePassAction()">Continue</button>
+    </div>
+  </div>
+
   <script src="characters.js"></script>
   <script src="network.js"></script>
   <script src="game.js"></script>
   <script>
-    // Populate pack selector
-    const packSelect = document.getElementById("packSelect");
-    PACK_NAMES.forEach(name => {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name + " (" + CHARACTER_PACKS[name].length + ")";
-      packSelect.appendChild(opt);
-    });
+    // Populate pack selectors
+    function populatePackSelect(selectId) {
+      const sel = document.getElementById(selectId);
+      PACK_NAMES.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name + " (" + CHARACTER_PACKS[name].length + ")";
+        sel.appendChild(opt);
+      });
+    }
+    populatePackSelect("soloPackSelect");
+    populatePackSelect("localPackSelect");
   </script>
 </body>
 </html>
