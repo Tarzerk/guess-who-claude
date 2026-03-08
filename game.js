@@ -79,7 +79,7 @@ async function fetchImages() {
     console.log(`[Images] Loaded ${loadedCount} images, ${missingCount} missing from API`);
 
     // Update rendered cards
-    document.querySelectorAll(".card .avatar").forEach(img => {
+    document.querySelectorAll(".card-front .avatar").forEach(img => {
       const name = img.closest(".card").dataset.name;
       if (imageCache[name]) {
         img.src = imageCache[name];
@@ -167,7 +167,7 @@ function renderBoard() {
     const imgTag = imgSrc
       ? `<img class="avatar" src="${imgSrc}" alt="${name}" onerror="handleImageError(this, '${name.replace(/'/g, "\\'")}')">`
       : `<img class="avatar" alt="${name}" onerror="handleImageError(this, '${name.replace(/'/g, "\\'")}')" style="display:none">`;
-    card.innerHTML = `${imgTag}<span class="name">${name}</span>`;
+    card.innerHTML = `<div class="card-inner"><div class="card-front">${imgTag}<span class="name">${name}</span></div><div class="card-back"></div></div>`;
     card.dataset.name = name;
     card.addEventListener("click", () => handleCardClick(card));
     grid.appendChild(card);
