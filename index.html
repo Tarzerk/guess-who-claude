@@ -386,47 +386,101 @@
   </div>
 
   <script>
-    const CHARACTERS = [
+    // 100 celebrities — each game picks 24 at random
+    const ALL_CHARACTERS = [
       "Taylor Swift", "Dwayne Johnson", "Zendaya", "Ryan Reynolds",
       "Beyoncé", "Tom Holland", "Billie Eilish", "Chris Hemsworth",
       "Selena Gomez", "Keanu Reeves", "Ariana Grande", "Timothée Chalamet",
       "Jennifer Lawrence", "Leonardo DiCaprio", "Rihanna", "Will Smith",
       "Scarlett Johansson", "Robert Downey Jr.", "Emma Watson", "Chris Pratt",
-      "Kylie Jenner", "Drake", "Margot Robbie", "Pedro Pascal"
+      "Kylie Jenner", "Drake", "Margot Robbie", "Pedro Pascal",
+      "Bad Bunny", "Harry Styles", "Dua Lipa", "Morgan Freeman",
+      "Cardi B", "Tom Hanks", "Gal Gadot", "Post Malone",
+      "Lady Gaga", "Brad Pitt", "Shakira", "Denzel Washington",
+      "Adele", "Jason Momoa", "Miley Cyrus", "Samuel L. Jackson",
+      "Nicki Minaj", "Ryan Gosling", "SZA", "Johnny Depp",
+      "Olivia Rodrigo", "Chris Evans", "Megan Thee Stallion", "Vin Diesel",
+      "Lizzo", "Tom Cruise", "Hailey Bieber", "Jeff Bezos",
+      "Kendall Jenner", "Elon Musk", "Ice Spice", "Mark Zuckerberg",
+      "Sabrina Carpenter", "LeBron James", "Karol G", "Lionel Messi",
+      "Lana Del Rey", "Cristiano Ronaldo", "Dove Cameron", "Serena Williams",
+      "Chappell Roan", "Stephen Curry", "Sydney Sweeney", "Travis Kelce",
+      "Rosalía", "Patrick Mahomes", "Florence Pugh", "Shohei Ohtani",
+      "Tyla", "Usain Bolt", "Ana de Armas", "Kevin Hart",
+      "Charli XCX", "The Weeknd", "Jenna Ortega", "Snoop Dogg",
+      "Billie Holiday", "Travis Scott", "Millie Bobby Brown", "Jack Black",
+      "Anya Taylor-Joy", "J. Cole", "Hailee Steinfeld", "Adam Sandler",
+      "Madison Beer", "21 Savage", "Rachel Zegler", "Danny DeVito",
+      "Camila Cabello", "Tyler, the Creator", "Lupita Nyong'o", "Oprah Winfrey",
+      "Lil Nas X", "Reese Witherspoon", "Bruno Mars", "Awkwafina"
     ];
 
+    // Wikipedia article titles for image lookups
     const WIKI_TITLES = {
-      "Taylor Swift": "Taylor_Swift",
-      "Dwayne Johnson": "Dwayne_Johnson",
-      "Zendaya": "Zendaya",
-      "Ryan Reynolds": "Ryan_Reynolds",
-      "Beyoncé": "Beyoncé",
-      "Tom Holland": "Tom_Holland",
-      "Billie Eilish": "Billie_Eilish",
-      "Chris Hemsworth": "Chris_Hemsworth",
-      "Selena Gomez": "Selena_Gomez",
-      "Keanu Reeves": "Keanu_Reeves",
-      "Ariana Grande": "Ariana_Grande",
-      "Timothée Chalamet": "Timothée_Chalamet",
-      "Jennifer Lawrence": "Jennifer_Lawrence",
-      "Leonardo DiCaprio": "Leonardo_DiCaprio",
-      "Rihanna": "Rihanna",
-      "Will Smith": "Will_Smith",
-      "Scarlett Johansson": "Scarlett_Johansson",
-      "Robert Downey Jr.": "Robert_Downey_Jr.",
-      "Emma Watson": "Emma_Watson",
-      "Chris Pratt": "Chris_Pratt",
-      "Kylie Jenner": "Kylie_Jenner",
-      "Drake": "Drake_(musician)",
-      "Margot Robbie": "Margot_Robbie",
-      "Pedro Pascal": "Pedro_Pascal"
+      "Taylor Swift": "Taylor_Swift", "Dwayne Johnson": "Dwayne_Johnson",
+      "Zendaya": "Zendaya", "Ryan Reynolds": "Ryan_Reynolds",
+      "Beyoncé": "Beyoncé", "Tom Holland": "Tom_Holland",
+      "Billie Eilish": "Billie_Eilish", "Chris Hemsworth": "Chris_Hemsworth",
+      "Selena Gomez": "Selena_Gomez", "Keanu Reeves": "Keanu_Reeves",
+      "Ariana Grande": "Ariana_Grande", "Timothée Chalamet": "Timothée_Chalamet",
+      "Jennifer Lawrence": "Jennifer_Lawrence", "Leonardo DiCaprio": "Leonardo_DiCaprio",
+      "Rihanna": "Rihanna", "Will Smith": "Will_Smith",
+      "Scarlett Johansson": "Scarlett_Johansson", "Robert Downey Jr.": "Robert_Downey_Jr.",
+      "Emma Watson": "Emma_Watson", "Chris Pratt": "Chris_Pratt",
+      "Kylie Jenner": "Kylie_Jenner", "Drake": "Drake_(musician)",
+      "Margot Robbie": "Margot_Robbie", "Pedro Pascal": "Pedro_Pascal",
+      "Bad Bunny": "Bad_Bunny", "Harry Styles": "Harry_Styles",
+      "Dua Lipa": "Dua_Lipa", "Morgan Freeman": "Morgan_Freeman",
+      "Cardi B": "Cardi_B", "Tom Hanks": "Tom_Hanks",
+      "Gal Gadot": "Gal_Gadot", "Post Malone": "Post_Malone",
+      "Lady Gaga": "Lady_Gaga", "Brad Pitt": "Brad_Pitt",
+      "Shakira": "Shakira", "Denzel Washington": "Denzel_Washington",
+      "Adele": "Adele", "Jason Momoa": "Jason_Momoa",
+      "Miley Cyrus": "Miley_Cyrus", "Samuel L. Jackson": "Samuel_L._Jackson",
+      "Nicki Minaj": "Nicki_Minaj", "Ryan Gosling": "Ryan_Gosling",
+      "SZA": "SZA", "Johnny Depp": "Johnny_Depp",
+      "Olivia Rodrigo": "Olivia_Rodrigo", "Chris Evans": "Chris_Evans_(actor)",
+      "Megan Thee Stallion": "Megan_Thee_Stallion", "Vin Diesel": "Vin_Diesel",
+      "Lizzo": "Lizzo", "Tom Cruise": "Tom_Cruise",
+      "Hailey Bieber": "Hailey_Bieber", "Jeff Bezos": "Jeff_Bezos",
+      "Kendall Jenner": "Kendall_Jenner", "Elon Musk": "Elon_Musk",
+      "Ice Spice": "Ice_Spice", "Mark Zuckerberg": "Mark_Zuckerberg",
+      "Sabrina Carpenter": "Sabrina_Carpenter", "LeBron James": "LeBron_James",
+      "Karol G": "Karol_G", "Lionel Messi": "Lionel_Messi",
+      "Lana Del Rey": "Lana_Del_Rey", "Cristiano Ronaldo": "Cristiano_Ronaldo",
+      "Dove Cameron": "Dove_Cameron", "Serena Williams": "Serena_Williams",
+      "Chappell Roan": "Chappell_Roan", "Stephen Curry": "Stephen_Curry",
+      "Sydney Sweeney": "Sydney_Sweeney", "Travis Kelce": "Travis_Kelce",
+      "Rosalía": "Rosalía", "Patrick Mahomes": "Patrick_Mahomes",
+      "Florence Pugh": "Florence_Pugh", "Shohei Ohtani": "Shohei_Ohtani",
+      "Tyla": "Tyla_(singer)", "Usain Bolt": "Usain_Bolt",
+      "Ana de Armas": "Ana_de_Armas", "Kevin Hart": "Kevin_Hart",
+      "Charli XCX": "Charli_XCX", "The Weeknd": "The_Weeknd",
+      "Jenna Ortega": "Jenna_Ortega", "Snoop Dogg": "Snoop_Dogg",
+      "Billie Holiday": "Billie_Holiday", "Travis Scott": "Travis_Scott",
+      "Millie Bobby Brown": "Millie_Bobby_Brown", "Jack Black": "Jack_Black",
+      "Anya Taylor-Joy": "Anya_Taylor-Joy", "J. Cole": "J._Cole",
+      "Hailee Steinfeld": "Hailee_Steinfeld", "Adam Sandler": "Adam_Sandler",
+      "Madison Beer": "Madison_Beer", "21 Savage": "21_Savage",
+      "Rachel Zegler": "Rachel_Zegler", "Danny DeVito": "Danny_DeVito",
+      "Camila Cabello": "Camila_Cabello", "Tyler, the Creator": "Tyler,_the_Creator",
+      "Lupita Nyong'o": "Lupita_Nyong%27o", "Oprah Winfrey": "Oprah_Winfrey",
+      "Lil Nas X": "Lil_Nas_X", "Reese Witherspoon": "Reese_Witherspoon",
+      "Bruno Mars": "Bruno_Mars", "Awkwafina": "Awkwafina"
     };
+
+    // The 24 characters chosen for this game (set by host, sent to guest)
+    let gameCharacters = [];
 
     const imageCache = {};
 
     async function fetchImages() {
-      const titles = Object.values(WIKI_TITLES).join("|");
-      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=pageimages&pithumbsize=200&format=json&origin=*`;
+      // Only fetch images for the 24 characters in this game
+      const names = gameCharacters.length ? gameCharacters : [];
+      if (!names.length) return;
+
+      const wikiTitles = names.map(n => WIKI_TITLES[n]).filter(Boolean);
+      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitles.join("|"))}&prop=pageimages&pithumbsize=200&format=json&origin=*`;
       try {
         const res = await fetch(url);
         const data = await res.json();
@@ -436,8 +490,10 @@
           const page = pages[id];
           if (page.thumbnail) titleToThumb[page.title] = page.thumbnail.source;
         }
-        for (const [name, wikiTitle] of Object.entries(WIKI_TITLES)) {
-          const normalized = wikiTitle.replace(/_/g, " ");
+        for (const name of names) {
+          const wikiTitle = WIKI_TITLES[name];
+          if (!wikiTitle) continue;
+          const normalized = wikiTitle.replace(/_/g, " ").replace(/%27/g, "'");
           if (titleToThumb[normalized]) imageCache[name] = titleToThumb[normalized];
         }
         document.querySelectorAll(".card .avatar").forEach(img => {
@@ -488,12 +544,15 @@
       peer.on("connection", (connection) => {
         conn = connection;
         setupConnection();
-        // Host picks cards and sends guest theirs
-        const shuffled = [...CHARACTERS].sort(() => Math.random() - 0.5);
-        myCard = shuffled[0];     // host's card (guest tries to guess this)
-        const guestCard = shuffled[1]; // guest's card (host tries to guess this)
+        // Host picks 24 random characters for the board
+        const shuffled = [...ALL_CHARACTERS].sort(() => Math.random() - 0.5);
+        gameCharacters = shuffled.slice(0, 24);
+        // Pick 2 different mystery cards from those 24
+        const cardShuffled = [...gameCharacters].sort(() => Math.random() - 0.5);
+        myCard = cardShuffled[0];     // host's card (guest tries to guess this)
+        const guestCard = cardShuffled[1]; // guest's card (host tries to guess this)
         conn.on("open", () => {
-          conn.send({ type: "start", yourCard: guestCard });
+          conn.send({ type: "start", yourCard: guestCard, characters: gameCharacters });
           myTurn = true; // host goes first
           startGame();
         });
@@ -547,8 +606,9 @@
       conn.on("data", (data) => {
         switch (data.type) {
           case "start":
-            // Guest receives their card
+            // Guest receives their card and the 24 characters for this game
             myCard = data.yourCard;
+            gameCharacters = data.characters;
             myTurn = false; // host goes first
             startGame();
             break;
@@ -602,6 +662,7 @@
       document.getElementById("roomBadge").innerHTML = `Room: <strong>${roomId}</strong>`;
       renderBoard();
       updateTurnUI();
+      fetchImages();
     }
 
     function updateTurnUI() {
@@ -632,7 +693,7 @@
       const grid = document.getElementById("grid");
       grid.innerHTML = "";
 
-      CHARACTERS.forEach(name => {
+      gameCharacters.forEach(name => {
         const card = document.createElement("div");
         card.className = "card" + (eliminated.has(name) ? " eliminated" : "");
         const imgSrc = imageCache[name] || "";
@@ -745,8 +806,7 @@
       }
     });
 
-    // Fetch images on load
-    fetchImages();
+    // Images are fetched when the game starts (after characters are selected)
   </script>
 </body>
 </html>
