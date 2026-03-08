@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guess Who?</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+    }
+
+    /* Turn handoff overlay - blocks the screen between turns */
+    .turn-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #1a1a2e;
+      z-index: 200;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .turn-screen.visible { display: flex; }
+
+    .turn-screen h2 {
+      font-size: 2.2rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .turn-screen .player-label {
+      font-size: 1.2rem;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+
+    .turn-screen .my-card-reveal {
+      background: #16213e;
+      border: 3px solid #e94560;
+      border-radius: 12px;
+      padding: 16px 32px;
+      margin: 10px 0;
+    }
+
+    .turn-screen .my-card-reveal span {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #e94560;
+    }
+
+    .turn-screen .reminder {
+      font-size: 0.9rem;
+      color: #666;
+      max-width: 340px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .p1-turn h2 { color: #e94560; }
+    .p2-turn h2 { color: #4ea8de; }
+
+    /* Main game area */
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 16px 8px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: #e94560;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+    }
+
+    button:hover { transform: scale(1.05); }
+
+    .btn-reset { background: #0f3460; color: #eee; }
+    .btn-new { background: #e94560; color: #fff; }
+    .btn-guess { background: #16c79a; color: #1a1a2e; }
+    .btn-ready { background: #16c79a; color: #1a1a2e; font-size: 1.2rem; padding: 14px 40px; }
+    .btn-end-turn { background: #ff9a3c; color: #1a1a2e; }
+
+    .btn-guess.active {
+      background: #ff9a3c;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 154, 60, 0.5); }
+      50% { box-shadow: 0 0 0 10px rgba(255, 154, 60, 0); }
+    }
+
+    /* Status bar */
+    .status-bar {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+    }
+
+    .turn-info {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .turn-info.p1 { color: #e94560; }
+    .turn-info.p2 { color: #4ea8de; }
+
+    .my-card-badge {
+      background: #16213e;
+      border: 2px solid #e94560;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+    }
+
+    .my-card-badge strong {
+      color: #e94560;
+    }
+
+    .game-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0 12px;
+    }
+
+    .guess-hint {
+      font-size: 0.9rem;
+      color: #ff9a3c;
+      display: none;
+    }
+
+    .guess-hint.visible { display: inline; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      max-width: 900px;
+      width: 100%;
+      padding: 0 16px 30px;
+    }
+
+    .card {
+      background: #16213e;
+      border: 3px solid #0f3460;
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 160px;
+    }
+
+    .card:hover {
+      border-color: #e94560;
+      transform: translateY(-3px);
+    }
+
+    .card .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #0f3460;
+      background: #0d1525;
+    }
+
+    .card .name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .card.eliminated {
+      background: #0d1525;
+      border-color: #1a1a2e;
+      opacity: 0.35;
+    }
+
+    .card.eliminated .avatar {
+      filter: grayscale(1);
+    }
+
+    .card.eliminated .name {
+      text-decoration: line-through;
+      color: #666;
+    }
+
+    .card.eliminated:hover {
+      opacity: 0.55;
+      border-color: #333;
+    }
+
+    .guess-mode .card:not(.eliminated):hover {
+      border-color: #16c79a;
+      box-shadow: 0 0 15px rgba(22, 199, 154, 0.4);
+    }
+
+    /* Result overlay */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.visible { display: flex; }
+
+    .modal {
+      background: #16213e;
+      border: 3px solid #e94560;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+    }
+
+    .modal h2 { font-size: 1.8rem; margin-bottom: 12px; }
+    .modal p { font-size: 1.1rem; margin-bottom: 24px; color: #aaa; }
+    .modal .highlight { color: #16c79a; font-weight: 700; }
+    .win h2 { color: #16c79a; }
+    .lose h2 { color: #e94560; }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+      h1 { font-size: 1.3rem; }
+      header { flex-direction: column; gap: 10px; }
+      .card { min-height: 120px; padding: 8px 4px; }
+      .card .avatar { width: 56px; height: 56px; }
+      .card .name { font-size: 0.7rem; }
+      .status-bar { flex-direction: column; gap: 6px; }
+    }
+
+    @media (max-width: 400px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Turn handoff screen -->
+  <div class="turn-screen" id="turnScreen">
+    <h2 id="turnTitle"></h2>
+    <div class="player-label" id="turnLabel"></div>
+    <div class="my-card-reveal">
+      <img id="turnCardImg" class="avatar" style="width:100px;height:100px;display:none;margin:0 auto 10px;" alt="">
+      Your card: <span id="turnCard"></span>
+    </div>
+    <div class="reminder">Your opponent is trying to guess this person. Don't let them see your card!</div>
+    <button class="btn-ready" onclick="startTurn()">I'm Ready</button>
+  </div>
+
+  <!-- Game -->
+  <div class="game-container" id="gameContainer">
+    <header>
+      <h1>Guess Who?</h1>
+      <div class="controls">
+        <button class="btn-reset" onclick="resetBoard()">Reset Board</button>
+        <button class="btn-new" onclick="newGame()">Restart Game</button>
+      </div>
+    </header>
+
+    <div class="status-bar">
+      <div class="turn-info" id="turnInfo"></div>
+      <div class="my-card-badge" id="myCardBadge"></div>
+    </div>
+
+    <div class="game-actions">
+      <button class="btn-guess" id="guessBtn" onclick="toggleGuessMode()">Make Guess</button>
+      <button class="btn-end-turn" id="endTurnBtn" onclick="endTurn()">End Turn</button>
+      <span class="guess-hint" id="guessHint">Click a character to guess!</span>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- Result modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal" id="modal">
+      <h2 id="modalTitle"></h2>
+      <p id="modalText"></p>
+      <button class="btn-new" onclick="newGame()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const CHARACTERS = [
+      "Taylor Swift", "Dwayne Johnson", "Zendaya", "Ryan Reynolds",
+      "Beyoncé", "Tom Holland", "Billie Eilish", "Chris Hemsworth",
+      "Selena Gomez", "Keanu Reeves", "Ariana Grande", "Timothée Chalamet",
+      "Jennifer Lawrence", "Leonardo DiCaprio", "Rihanna", "Will Smith",
+      "Scarlett Johansson", "Robert Downey Jr.", "Emma Watson", "Chris Pratt",
+      "Kylie Jenner", "Drake", "Margot Robbie", "Pedro Pascal"
+    ];
+
+    // Wikipedia article titles (some differ from display names)
+    const WIKI_TITLES = {
+      "Taylor Swift": "Taylor_Swift",
+      "Dwayne Johnson": "Dwayne_Johnson",
+      "Zendaya": "Zendaya",
+      "Ryan Reynolds": "Ryan_Reynolds",
+      "Beyoncé": "Beyoncé",
+      "Tom Holland": "Tom_Holland",
+      "Billie Eilish": "Billie_Eilish",
+      "Chris Hemsworth": "Chris_Hemsworth",
+      "Selena Gomez": "Selena_Gomez",
+      "Keanu Reeves": "Keanu_Reeves",
+      "Ariana Grande": "Ariana_Grande",
+      "Timothée Chalamet": "Timothée_Chalamet",
+      "Jennifer Lawrence": "Jennifer_Lawrence",
+      "Leonardo DiCaprio": "Leonardo_DiCaprio",
+      "Rihanna": "Rihanna",
+      "Will Smith": "Will_Smith",
+      "Scarlett Johansson": "Scarlett_Johansson",
+      "Robert Downey Jr.": "Robert_Downey_Jr.",
+      "Emma Watson": "Emma_Watson",
+      "Chris Pratt": "Chris_Pratt",
+      "Kylie Jenner": "Kylie_Jenner",
+      "Drake": "Drake_(musician)",
+      "Margot Robbie": "Margot_Robbie",
+      "Pedro Pascal": "Pedro_Pascal"
+    };
+
+    // Cache for fetched image URLs
+    const imageCache = {};
+
+    async function fetchImages() {
+      const titles = Object.values(WIKI_TITLES).join("|");
+      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=pageimages&pithumbsize=200&format=json&origin=*`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const pages = data.query.pages;
+        // Build a lookup from normalized title to thumbnail
+        const titleToThumb = {};
+        for (const id in pages) {
+          const page = pages[id];
+          if (page.thumbnail) {
+            titleToThumb[page.title] = page.thumbnail.source;
+          }
+        }
+        // Map display names to image URLs
+        for (const [name, wikiTitle] of Object.entries(WIKI_TITLES)) {
+          // Wikipedia normalizes underscores to spaces
+          const normalized = wikiTitle.replace(/_/g, " ");
+          if (titleToThumb[normalized]) {
+            imageCache[name] = titleToThumb[normalized];
+          }
+        }
+        // Update any already-rendered cards
+        document.querySelectorAll(".card .avatar").forEach(img => {
+          const name = img.closest(".card").dataset.name;
+          if (imageCache[name]) img.src = imageCache[name];
+        });
+        // Update turn screen image if present
+        updateTurnScreenImage();
+      } catch (e) {
+        console.warn("Could not fetch Wikipedia images:", e);
+      }
+    }
+
+    function updateTurnScreenImage() {
+      const img = document.getElementById("turnCardImg");
+      const card = currentCard();
+      if (img && imageCache[card]) {
+        img.src = imageCache[card];
+        img.style.display = "block";
+      }
+    }
+
+    // Game state
+    let p1Card = "";
+    let p2Card = "";
+    // Each player's eliminated set (persists across turns)
+    let p1Eliminated = new Set();
+    let p2Eliminated = new Set();
+    let currentPlayer = 1; // 1 or 2
+    let guessMode = false;
+    let gameOver = false;
+
+    function currentCard() {
+      return currentPlayer === 1 ? p1Card : p2Card;
+    }
+
+    function opponentCard() {
+      return currentPlayer === 1 ? p2Card : p1Card;
+    }
+
+    function currentEliminated() {
+      return currentPlayer === 1 ? p1Eliminated : p2Eliminated;
+    }
+
+    function pickCards() {
+      const shuffled = [...CHARACTERS].sort(() => Math.random() - 0.5);
+      p1Card = shuffled[0];
+      p2Card = shuffled[1];
+    }
+
+    function showTurnScreen() {
+      const screen = document.getElementById("turnScreen");
+      const title = document.getElementById("turnTitle");
+      const label = document.getElementById("turnLabel");
+      const card = document.getElementById("turnCard");
+
+      screen.className = currentPlayer === 1 ? "turn-screen visible p1-turn" : "turn-screen visible p2-turn";
+      title.textContent = `Player ${currentPlayer}'s Turn`;
+      label.textContent = "Pass the device and look at your mystery card:";
+      card.textContent = currentCard();
+      updateTurnScreenImage();
+    }
+
+    function startTurn() {
+      document.getElementById("turnScreen").classList.remove("visible");
+      renderBoard();
+    }
+
+    function renderBoard() {
+      // Update status bar
+      const info = document.getElementById("turnInfo");
+      info.textContent = `Player ${currentPlayer}'s Turn`;
+      info.className = currentPlayer === 1 ? "turn-info p1" : "turn-info p2";
+
+      const badge = document.getElementById("myCardBadge");
+      badge.innerHTML = `Your card: <strong>${currentCard()}</strong>`;
+
+      // Render grid with this player's eliminated state
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+      const eliminated = currentEliminated();
+
+      CHARACTERS.forEach(name => {
+        const card = document.createElement("div");
+        card.className = "card" + (eliminated.has(name) ? " eliminated" : "");
+        const imgSrc = imageCache[name] || "";
+        card.innerHTML = `<img class="avatar" src="${imgSrc}" alt="${name}" onerror="this.style.display='none'"><span class="name">${name}</span>`;
+        card.dataset.name = name;
+        card.addEventListener("click", () => handleCardClick(card));
+        grid.appendChild(card);
+      });
+
+      // Reset guess mode UI
+      guessMode = false;
+      document.getElementById("guessBtn").classList.remove("active");
+      document.getElementById("guessHint").classList.remove("visible");
+      grid.classList.remove("guess-mode");
+    }
+
+    function handleCardClick(card) {
+      if (gameOver) return;
+      const name = card.dataset.name;
+
+      if (guessMode) {
+        if (card.classList.contains("eliminated")) return;
+        makeGuess(name);
+        return;
+      }
+
+      // Toggle elimination
+      const eliminated = currentEliminated();
+      if (eliminated.has(name)) {
+        eliminated.delete(name);
+        card.classList.remove("eliminated");
+      } else {
+        eliminated.add(name);
+        card.classList.add("eliminated");
+      }
+    }
+
+    function toggleGuessMode() {
+      if (gameOver) return;
+      guessMode = !guessMode;
+      document.getElementById("guessBtn").classList.toggle("active", guessMode);
+      document.getElementById("guessHint").classList.toggle("visible", guessMode);
+      document.getElementById("grid").classList.toggle("guess-mode", guessMode);
+    }
+
+    function makeGuess(name) {
+      gameOver = true;
+      guessMode = false;
+      document.getElementById("guessBtn").classList.remove("active");
+      document.getElementById("guessHint").classList.remove("visible");
+      document.getElementById("grid").classList.remove("guess-mode");
+
+      const modal = document.getElementById("modal");
+      const title = document.getElementById("modalTitle");
+      const text = document.getElementById("modalText");
+      const correct = name === opponentCard();
+
+      if (correct) {
+        modal.className = "modal win";
+        title.textContent = `Player ${currentPlayer} Wins!`;
+        text.innerHTML = `Correct! The mystery person was <span class="highlight">${opponentCard()}</span>.`;
+      } else {
+        modal.className = "modal lose";
+        title.textContent = `Player ${currentPlayer} Loses!`;
+        text.innerHTML = `You guessed <strong>${name}</strong>, but Player ${currentPlayer === 1 ? 2 : 1}'s card was <span class="highlight">${opponentCard()}</span>.`;
+      }
+
+      document.getElementById("overlay").classList.add("visible");
+    }
+
+    function endTurn() {
+      if (gameOver) return;
+      // Switch to other player
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      showTurnScreen();
+    }
+
+    function resetBoard() {
+      if (gameOver) return;
+      currentEliminated().clear();
+      renderBoard();
+    }
+
+    function newGame() {
+      gameOver = false;
+      guessMode = false;
+      p1Eliminated = new Set();
+      p2Eliminated = new Set();
+      currentPlayer = 1;
+      document.getElementById("overlay").classList.remove("visible");
+      pickCards();
+      showTurnScreen();
+    }
+
+    // Start
+    fetchImages();
+    newGame();
+  </script>
+</body>
+</html>
