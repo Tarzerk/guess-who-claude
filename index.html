@@ -340,9 +340,18 @@
   <!-- Lobby -->
   <div class="lobby" id="lobby">
     <h1>Guess Who?</h1>
-    <p>Enter the same room code as your friend to play together online!</p>
+    <p>Play with a friend online or start a solo board to coordinate over Discord!</p>
+
     <div class="lobby-box">
-      <label>Room Code</label>
+      <label>Solo / Discord Mode</label>
+      <button class="btn-join" onclick="startOffline()" style="width:100%;padding:14px;font-size:1.05rem;">Play Offline</button>
+      <div style="color:#666;font-size:0.8rem;text-align:center;">Get your own board and card. Tell your friend when you're done over Discord!</div>
+    </div>
+
+    <div style="color:#444;font-size:0.9rem;margin:4px 0;">— or play connected —</div>
+
+    <div class="lobby-box">
+      <label>Online Room Code</label>
       <input type="text" id="roomCode" maxlength="8" placeholder="e.g. ABCD" autocomplete="off">
       <div class="lobby-buttons">
         <button class="btn-create" onclick="createRoom()">Create Room</button>
@@ -548,6 +557,7 @@
     let peer = null;
     let conn = null;
     let isHost = false;
+    let offlineMode = false;
     let myCard = "";
     let roomId = "";
     let eliminated = new Set();
@@ -563,6 +573,22 @@
 
     function getRoomCode() {
       return document.getElementById("roomCode").value.trim().toUpperCase();
+    }
+
+    // ─── Offline / Discord Mode ───
+    function startOffline() {
+      offlineMode = true;
+      myTurn = true;
+      const shuffled = [...ALL_CHARACTERS].sort(() => Math.random() - 0.5);
+      gameCharacters = shuffled.slice(0, 24);
+      myCard = gameCharacters[Math.floor(Math.random() * gameCharacters.length)];
+      document.getElementById("lobby").style.display = "none";
+      document.getElementById("gameContainer").classList.add("visible");
+      document.getElementById("roomBadge").innerHTML = "<strong>Offline</strong>";
+      document.getElementById("endTurnBtn").style.display = "none";
+      renderBoard();
+      updateTurnUI();
+      fetchImages();
     }
 
     // ─── Create Room (Host) ───
@@ -705,6 +731,12 @@
 
     function updateTurnUI() {
       const info = document.getElementById("turnInfo");
+      if (offlineMode) {
+        info.textContent = "Eliminate characters, then Make Guess when ready!";
+        info.className = "turn-info your-turn";
+        document.getElementById("guessBtn").disabled = false;
+        return;
+      }
       if (myTurn) {
         info.textContent = "Your Turn — eliminate characters or make a guess!";
         info.className = "turn-info your-turn";
@@ -769,7 +801,7 @@
     }
 
     function toggleGuessMode() {
-      if (gameOver || !myTurn) return;
+      if (gameOver || (!myTurn && !offlineMode)) return;
       guessMode = !guessMode;
       document.getElementById("guessBtn").classList.toggle("active", guessMode);
       document.getElementById("guessHint").classList.toggle("visible", guessMode);
@@ -783,7 +815,19 @@
       document.getElementById("guessHint").classList.remove("visible");
       document.getElementById("grid").classList.remove("guess-mode");
 
-      // Send guess to opponent — they validate against their card
+      if (offlineMode) {
+        // Offline: show the guess and let the player ask their friend
+        const modal = document.getElementById("modal");
+        const title = document.getElementById("modalTitle");
+        const text = document.getElementById("modalText");
+        modal.className = "modal win";
+        title.textContent = "Your Guess";
+        text.innerHTML = `You guessed <span class="highlight">${name}</span>!<br><br><span style="color:#aaa;font-size:0.9rem;">Ask your opponent if you're right!</span>`;
+        document.getElementById("overlay").classList.add("visible");
+        return;
+      }
+
+      // Online: send guess to opponent — they validate against their card
       conn.send({ type: "guess", name });
 
       // Show waiting state
