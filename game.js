@@ -79,10 +79,11 @@ async function fetchImages() {
     console.log(`[Images] Loaded ${loadedCount} images, ${missingCount} missing from API`);
 
     // Update rendered cards
-    document.querySelectorAll(".card .avatar").forEach(img => {
+    document.querySelectorAll(".card-front .avatar").forEach(img => {
       const name = img.closest(".card").dataset.name;
       if (imageCache[name]) {
         img.src = imageCache[name];
+        img.style.display = "";
       } else {
         console.warn("[Images] No cached image for card:", name);
       }
@@ -162,8 +163,11 @@ function renderBoard() {
   gameCharacters.forEach(name => {
     const card = document.createElement("div");
     card.className = "card" + (eliminated.has(name) ? " eliminated" : "");
-    const imgSrc = imageCache[name] || "";
-    card.innerHTML = `<img class="avatar" src="${imgSrc}" alt="${name}" onerror="handleImageError(this, '${name.replace(/'/g, "\\'")}')"><span class="name">${name}</span>`;
+    const imgSrc = imageCache[name];
+    const imgTag = imgSrc
+      ? `<img class="avatar" src="${imgSrc}" alt="${name}" onerror="handleImageError(this, '${name.replace(/'/g, "\\'")}')">`
+      : `<img class="avatar" alt="${name}" onerror="handleImageError(this, '${name.replace(/'/g, "\\'")}')" style="display:none">`;
+    card.innerHTML = `<div class="card-inner"><div class="card-front">${imgTag}<span class="name">${name}</span></div><div class="card-back"></div></div>`;
     card.dataset.name = name;
     card.addEventListener("click", () => handleCardClick(card));
     grid.appendChild(card);
