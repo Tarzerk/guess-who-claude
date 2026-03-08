@@ -434,14 +434,14 @@
       "Cardi B": "Cardi_B", "Tom Hanks": "Tom_Hanks",
       "Gal Gadot": "Gal_Gadot", "Post Malone": "Post_Malone",
       "Lady Gaga": "Lady_Gaga", "Brad Pitt": "Brad_Pitt",
-      "Shakira": "Shakira", "Denzel Washington": "Denzel_Washington",
-      "Adele": "Adele", "Jason Momoa": "Jason_Momoa",
+      "Shakira": "Shakira_(singer)", "Denzel Washington": "Denzel_Washington",
+      "Adele": "Adele_(singer)", "Jason Momoa": "Jason_Momoa",
       "Miley Cyrus": "Miley_Cyrus", "Samuel L. Jackson": "Samuel_L._Jackson",
       "Nicki Minaj": "Nicki_Minaj", "Ryan Gosling": "Ryan_Gosling",
-      "SZA": "SZA", "Johnny Depp": "Johnny_Depp",
+      "SZA": "SZA_(singer)", "Johnny Depp": "Johnny_Depp",
       "Olivia Rodrigo": "Olivia_Rodrigo", "Chris Evans": "Chris_Evans_(actor)",
       "Megan Thee Stallion": "Megan_Thee_Stallion", "Vin Diesel": "Vin_Diesel",
-      "Lizzo": "Lizzo", "Tom Cruise": "Tom_Cruise",
+      "Lizzo": "Lizzo_(singer)", "Tom Cruise": "Tom_Cruise",
       "Hailey Bieber": "Hailey_Bieber", "Jeff Bezos": "Jeff_Bezos",
       "Kendall Jenner": "Kendall_Jenner", "Elon Musk": "Elon_Musk",
       "Ice Spice": "Ice_Spice", "Mark Zuckerberg": "Mark_Zuckerberg",
@@ -451,7 +451,7 @@
       "Dove Cameron": "Dove_Cameron", "Serena Williams": "Serena_Williams",
       "Chappell Roan": "Chappell_Roan", "Stephen Curry": "Stephen_Curry",
       "Sydney Sweeney": "Sydney_Sweeney", "Travis Kelce": "Travis_Kelce",
-      "Rosalía": "Rosalía", "Patrick Mahomes": "Patrick_Mahomes",
+      "Rosalía": "Rosalía_(singer)", "Patrick Mahomes": "Patrick_Mahomes",
       "Florence Pugh": "Florence_Pugh", "Shohei Ohtani": "Shohei_Ohtani",
       "Tyla": "Tyla_(singer)", "Usain Bolt": "Usain_Bolt",
       "Ana de Armas": "Ana_de_Armas", "Kevin Hart": "Kevin_Hart",
@@ -475,27 +475,40 @@
     const imageCache = {};
 
     async function fetchImages() {
-      // Only fetch images for the 24 characters in this game
       const names = gameCharacters.length ? gameCharacters : [];
       if (!names.length) return;
 
+      // Encode each title individually but keep | as separator (Wikipedia API requirement)
       const wikiTitles = names.map(n => WIKI_TITLES[n]).filter(Boolean);
-      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitles.join("|"))}&prop=pageimages&pithumbsize=200&format=json&origin=*`;
+      const titlesParam = wikiTitles.map(t => encodeURIComponent(t.replace(/_/g, " "))).join("|");
+      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${titlesParam}&prop=pageimages&pithumbsize=200&format=json&origin=*&redirects=1`;
       try {
         const res = await fetch(url);
         const data = await res.json();
         const pages = data.query.pages;
+        // Build lookup from page title to thumbnail
         const titleToThumb = {};
         for (const id in pages) {
           const page = pages[id];
-          if (page.thumbnail) titleToThumb[page.title] = page.thumbnail.source;
+          if (page.thumbnail) titleToThumb[page.title.toLowerCase()] = page.thumbnail.source;
         }
+        // Handle redirects (e.g. "Adele" → "Adele (singer)")
+        if (data.query.redirects) {
+          for (const r of data.query.redirects) {
+            const target = r.to.toLowerCase();
+            if (titleToThumb[target]) {
+              titleToThumb[r.from.toLowerCase()] = titleToThumb[target];
+            }
+          }
+        }
+        // Map display names to image URLs
         for (const name of names) {
           const wikiTitle = WIKI_TITLES[name];
           if (!wikiTitle) continue;
-          const normalized = wikiTitle.replace(/_/g, " ").replace(/%27/g, "'");
+          const normalized = wikiTitle.replace(/_/g, " ").replace(/%27/g, "'").toLowerCase();
           if (titleToThumb[normalized]) imageCache[name] = titleToThumb[normalized];
         }
+        // Update rendered cards
         document.querySelectorAll(".card .avatar").forEach(img => {
           const name = img.closest(".card").dataset.name;
           if (imageCache[name]) img.src = imageCache[name];
