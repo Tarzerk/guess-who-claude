@@ -505,7 +505,32 @@
       }
     }
 
-    // ─── Network state ───
+    // ─── Network config ───
+    // TURN servers needed for cross-network play (different WiFi, states, etc.)
+    const ICE_CONFIG = {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun3.l.google.com:19302" },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443?transport=tcp",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        }
+      ]
+    };
+    const PEER_OPTS = { config: ICE_CONFIG };
     const PEER_PREFIX = "guesswho-game-";
     let peer = null;
     let conn = null;
@@ -535,7 +560,7 @@
       isHost = true;
       setLobbyStatus("Creating room...");
 
-      peer = new Peer(PEER_PREFIX + code);
+      peer = new Peer(PEER_PREFIX + code, PEER_OPTS);
 
       peer.on("open", () => {
         setLobbyStatus(`Room "${code}" created! Waiting for opponent to join...`);
@@ -576,7 +601,7 @@
       isHost = false;
       setLobbyStatus("Connecting to room...");
 
-      peer = new Peer();
+      peer = new Peer(PEER_OPTS);
 
       peer.on("open", () => {
         conn = peer.connect(PEER_PREFIX + code, { reliable: true });
