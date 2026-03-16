@@ -2,7 +2,7 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #1a1a2e;
+  background: #1a0a0a;
   color: #eee;
   min-height: 100vh;
 }
@@ -34,8 +34,8 @@ body {
 }
 
 .lobby-box {
-  background: #16213e;
-  border: 3px solid #0f3460;
+  background: #2a1215;
+  border: 3px solid #5c1a1a;
   border-radius: 16px;
   padding: 30px;
   display: flex;
@@ -55,9 +55,9 @@ body {
 .lobby-box input, .lobby-box select {
   width: 100%;
   padding: 14px;
-  border: 2px solid #0f3460;
+  border: 2px solid #5c1a1a;
   border-radius: 8px;
-  background: #1a1a2e;
+  background: #1a0a0a;
   color: #eee;
   font-size: 1.1rem;
   text-align: center;
@@ -134,11 +134,11 @@ button {
 button:hover { transform: scale(1.05); }
 button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-.btn-reset { background: #0f3460; color: #eee; }
+.btn-reset { background: #5c1a1a; color: #eee; }
 .btn-new { background: #e94560; color: #fff; }
-.btn-guess { background: #16c79a; color: #1a1a2e; }
+.btn-guess { background: #16c79a; color: #1a0a0a; }
 .btn-create { background: #e94560; color: #fff; }
-.btn-join { background: #16c79a; color: #1a1a2e; }
+.btn-join { background: #16c79a; color: #1a0a0a; }
 
 .btn-guess.active {
   background: #ff9a3c;
@@ -158,7 +158,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 3px solid #0f3460;
+  border: 3px solid #5c1a1a;
   border-top-color: #e94560;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -180,7 +180,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .turn-info.their-turn { color: #ff9a3c; }
 
 .my-card-badge {
-  background: #16213e;
+  background: #2a1215;
   border: 2px solid #e94560;
   border-radius: 8px;
   padding: 6px 14px;
@@ -239,7 +239,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   inset: 0;
   backface-visibility: hidden;
   border-radius: 12px;
-  border: 3px solid #0f3460;
+  border: 3px solid #5c1a1a;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -249,7 +249,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 }
 
 .card-front {
-  background: #16213e;
+  background: #2a1215;
   transition: border-color 0.2s, transform 0.15s;
 }
 
@@ -259,8 +259,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 }
 
 .card-back {
-  background: #0d1525;
-  border-color: #1a1a2e;
+  background: #1a0808;
+  border-color: #1a0a0a;
   transform: rotateY(180deg);
 }
 
@@ -268,7 +268,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   content: "?";
   font-size: 2.5rem;
   font-weight: 800;
-  color: #0f3460;
+  color: #5c1a1a;
 }
 
 .card:hover .card-back {
@@ -280,8 +280,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #0f3460;
-  background: #0d1525;
+  border: 2px solid #5c1a1a;
+  background: #1a0808;
 }
 
 .card .name {
@@ -309,7 +309,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .overlay.visible { display: flex; }
 
 .modal {
-  background: #16213e;
+  background: #2a1215;
   border: 3px solid #e94560;
   border-radius: 16px;
   padding: 40px;
@@ -325,7 +325,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .lose h2 { color: #e94560; }
 
 .room-code-display {
-  background: #1a1a2e;
+  background: #1a0a0a;
   border: 2px solid #e94560;
   border-radius: 8px;
   padding: 4px 12px;
