@@ -1,8 +1,8 @@
-// Character packs — each pack has exactly 24 people.
+// Character packs for the game board.
 // Both offline players pick the same pack to ensure matching boards.
-// Online mode also uses a single pack so only 24 images are fetched.
+// Online mode sends the character list to the guest for sync.
 
-// Classic pack — all 28 characters; 24 are randomly selected each game
+// Classic pack — 28 characters, all used every game
 const CLASSIC_CHARACTERS = [
   "Abigail", "Alex", "Alice", "Amy", "Andy", "Ashley", "Brandon", "Brian",
   "Daniel", "David", "Emily", "Henry", "Jake", "James", "Joe", "Jon",

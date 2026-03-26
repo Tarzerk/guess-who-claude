@@ -26,14 +26,7 @@ function showScreen(screenId) {
 }
 
 function selectCharacters(packName) {
-  const allChars = [...CHARACTER_PACKS[packName]];
-  if (allChars.length <= 24) return allChars;
-  // Shuffle and pick 24
-  for (let i = allChars.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [allChars[i], allChars[j]] = [allChars[j], allChars[i]];
-  }
-  return allChars.slice(0, 24);
+  return [...CHARACTER_PACKS[packName]];
 }
 
 // ─── Image fetching with error logging ───

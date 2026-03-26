@@ -123,7 +123,7 @@ function setupConnection() {
   conn.on("data", (data) => {
     switch (data.type) {
       case "start":
-        // Guest receives their card and the 24 characters for this game
+        // Guest receives their card and the characters for this game
         myCard = data.yourCard;
         gameCharacters = data.characters;
         currentPack = data.pack || "";

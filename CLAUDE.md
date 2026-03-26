@@ -16,10 +16,10 @@ No build step. Open `index.html` directly in a browser or serve with any static 
 
 Four files, loaded in order by `index.html`:
 
-1. **`characters.js`** — Character pack data (`CHARACTER_PACKS` with 24 characters each) and `WIKI_TITLES` mapping display names to Wikipedia article titles for avatar image fetching.
+1. **`characters.js`** — Character pack data (`CHARACTER_PACKS`) and `WIKI_TITLES` mapping display names to Wikipedia article titles for avatar image fetching. Classic pack has 28 characters; other packs have 24.
 2. **`network.js`** — PeerJS connection management. Handles room creation (host) and joining (guest) via `PEER_PREFIX + roomCode` IDs. Host picks a random pack, assigns mystery cards, and sends `start` message. Message protocol uses `{type, ...}` objects over `conn.send()`.
-3. **`game.js`** — All game logic and DOM manipulation. Manages game state (eliminated set, turn tracking, guess mode), renders the 24-card grid, fetches Wikipedia thumbnail images via the MediaWiki API, and handles win/lose modals.
-4. **`styles.css`** — Responsive layout with a 6-column grid (4 on mobile, 3 on small screens). Card flip animation uses CSS 3D transforms (`.card.eliminated .card-inner` rotates 180°).
+3. **`game.js`** — All game logic and DOM manipulation. Manages game state (eliminated set, turn tracking, guess mode), renders the card grid, fetches Wikipedia thumbnail images via the MediaWiki API, and handles win/lose modals.
+4. **`styles.css`** — Responsive layout with a 7-column grid (4 on mobile, 3 on small screens). Card flip animation uses CSS 3D transforms (`.card.eliminated .card-inner` rotates 180°).
 
 ## Key Patterns
 
@@ -27,4 +27,4 @@ Four files, loaded in order by `index.html`:
 - **State is global**: `myCard`, `eliminated`, `myTurn`, `guessMode`, `gameOver`, `gameCharacters` are module-level variables in `game.js`. `peer`, `conn`, `isHost`, `roomId` are in `network.js`.
 - **Image loading**: `fetchImages()` batch-fetches thumbnails from Wikipedia's API, caches in `imageCache`, then updates already-rendered `<img>` elements. Images may load after the board renders.
 - **Network protocol messages**: `start`, `guess`, `guessResult`, `endTurn`, `disconnect` — all sent as plain objects via PeerJS data channel.
-- **Character packs**: Each pack has exactly 24 characters. Both offline players must pick the same pack manually; online mode auto-selects randomly.
+- **Character packs**: Classic pack uses all 28 characters; other packs have 24. All characters in a pack are always used. Both offline players must pick the same pack manually; online mode auto-selects randomly.
