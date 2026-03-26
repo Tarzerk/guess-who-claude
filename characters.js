@@ -2,7 +2,16 @@
 // Both offline players pick the same pack to ensure matching boards.
 // Online mode also uses a single pack so only 24 images are fetched.
 
+// Classic pack — all 28 characters; 24 are randomly selected each game
+const CLASSIC_CHARACTERS = [
+  "Abigail", "Alex", "Alice", "Amy", "Andy", "Ashley", "Brandon", "Brian",
+  "Daniel", "David", "Emily", "Henry", "Jake", "James", "Joe", "Jon",
+  "Joseph", "Joshua", "Justin", "Kyle", "Matt", "Megan", "Melissa", "Nick",
+  "Peter", "Rachael", "Tyler", "William"
+];
+
 const CHARACTER_PACKS = {
+  "Classic": CLASSIC_CHARACTERS,
   "Pop Stars": [
     "Taylor Swift", "Beyoncé", "Billie Eilish", "Ariana Grande",
     "Rihanna", "Drake", "Dua Lipa", "Lady Gaga",

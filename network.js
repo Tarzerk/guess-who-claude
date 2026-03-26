@@ -61,7 +61,8 @@ function createRoom() {
     setupConnection();
     // Host picks a random pack for the board
     const packName = PACK_NAMES[Math.floor(Math.random() * PACK_NAMES.length)];
-    gameCharacters = [...CHARACTER_PACKS[packName]];
+    currentPack = packName;
+    gameCharacters = selectCharacters(packName);
     // Pick 2 different mystery cards from those 24
     const cardShuffled = [...gameCharacters].sort(() => Math.random() - 0.5);
     myCard = cardShuffled[0];     // host's card (guest tries to guess this)
@@ -125,6 +126,7 @@ function setupConnection() {
         // Guest receives their card and the 24 characters for this game
         myCard = data.yourCard;
         gameCharacters = data.characters;
+        currentPack = data.pack || "";
         myTurn = false; // host goes first
         startGame(data.pack || null);
         break;

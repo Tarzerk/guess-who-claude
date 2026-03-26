@@ -6,6 +6,7 @@ let guessMode = false;
 let gameOver = false;
 let myTurn = false;
 let gameCharacters = [];
+let currentPack = "";
 const imageCache = {};
 
 // ─── Local multiplayer state ───
@@ -24,8 +25,32 @@ function showScreen(screenId) {
   document.getElementById(screenId).style.display = "";
 }
 
+function selectCharacters(packName) {
+  const allChars = [...CHARACTER_PACKS[packName]];
+  if (allChars.length <= 24) return allChars;
+  // Shuffle and pick 24
+  for (let i = allChars.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allChars[i], allChars[j]] = [allChars[j], allChars[i]];
+  }
+  return allChars.slice(0, 24);
+}
+
 // ─── Image fetching with error logging ───
 async function fetchImages() {
+  if (currentPack === "Classic") {
+    gameCharacters.forEach(name => {
+      imageCache[name] = `images/classic/${name}.png`;
+    });
+    document.querySelectorAll(".card-front .avatar").forEach(img => {
+      const name = img.closest(".card").dataset.name;
+      if (imageCache[name]) {
+        img.src = imageCache[name];
+        img.style.display = "";
+      }
+    });
+    return;
+  }
   const names = gameCharacters.length ? gameCharacters : [];
   if (!names.length) {
     console.warn("[Images] No characters to fetch images for");
@@ -119,7 +144,8 @@ function startOffline() {
   offlineMode = true;
   myTurn = true;
   const packName = document.getElementById("soloPackSelect").value;
-  gameCharacters = [...CHARACTER_PACKS[packName]];
+  currentPack = packName;
+  gameCharacters = selectCharacters(packName);
   myCard = gameCharacters[Math.floor(Math.random() * gameCharacters.length)];
   hideAllLobbyScreens();
   document.getElementById("gameContainer").classList.add("visible");
@@ -135,7 +161,8 @@ function startLocalMultiplayer() {
   localMultiplayer = true;
   myTurn = true;
   const packName = document.getElementById("localPackSelect").value;
-  gameCharacters = [...CHARACTER_PACKS[packName]];
+  currentPack = packName;
+  gameCharacters = selectCharacters(packName);
 
   // Pick 2 different mystery cards
   const shuffled = [...gameCharacters].sort(() => Math.random() - 0.5);

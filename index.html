@@ -118,7 +118,8 @@
       PACK_NAMES.forEach(name => {
         const opt = document.createElement("option");
         opt.value = name;
-        opt.textContent = name + " (" + CHARACTER_PACKS[name].length + ")";
+        const count = CHARACTER_PACKS[name].length;
+        opt.textContent = name + (count > 24 ? ` (${count}, picks 24)` : ` (${count})`);
         sel.appendChild(opt);
       });
     }
