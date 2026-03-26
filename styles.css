@@ -257,9 +257,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 12px;
-  max-width: 900px;
+  max-width: 1050px;
   width: 100%;
   padding: 0 16px 30px;
 }
